@@ -145,6 +145,9 @@ jobs:
         cd $OPENWRT_PATH
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+        # fix key addition failed -  https://github.com/openwrt/mt76/issues/1098
+        git fetch origin pull/23181/head
+        git cherry-pick FETCH_HEAD
 
     - name: 加载config & DIY_P2_SH
       run: |
@@ -189,9 +192,6 @@ jobs:
       run: |
         cd $OPENWRT_PATH
         echo -e "$(nproc) thread compile"
-        # fix key addition failed -  https://github.com/openwrt/mt76/issues/1098
-        git fetch origin pull/23181/head
-        git cherry-pick FETCH_HEAD
         # fix rust build fail
         # sed -i 's/download-ci-llvm=true/download-ci-llvm=false/g' "feeds/packages/lang/rust/Makefile"
         sed -i 's/download-ci-llvm=false/download-ci-llvm=true/g' "feeds/packages/lang/rust/Makefile"
