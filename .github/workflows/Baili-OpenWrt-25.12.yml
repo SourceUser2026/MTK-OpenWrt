@@ -145,6 +145,9 @@ jobs:
         cd $OPENWRT_PATH
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+        # fix key addition failed -  https://github.com/openwrt/mt76/issues/1098
+        mkdir -p package/kernel/mac80211/patches/subsys/
+        curl -sSL "https://github.com/AndreaCovelli/openwrt/raw/7bda064a5a622677d5fa07c91cdf16b04f28ba14/package/kernel/mac80211/patches/subsys/400-mac80211-defer-ap-side-ft-key-upload.patch" -o package/kernel/mac80211/patches/subsys/400-mac80211-defer-ap-side-ft-key-upload.patch
 
     - name: 加载config & DIY_P2_SH
       run: |
