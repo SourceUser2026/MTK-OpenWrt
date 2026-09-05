@@ -1,6 +1,5 @@
-  #  r20250220
-  # Check https://github.com/v2fly/domain-list-community/tree/master/data to know which label we can use as filter
-  #  ->  https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite
+#  r20250220
+# https://github.com/MetaCubeX/meta-rules-dat/tree/meta
 payload:
 # notepad++ 行操作， 去重， 按数字排列
 
@@ -142,4 +141,6 @@ payload:
     - feedly.com
     - +.feedly.com
     - +.pdf-xchange.com
+
+    - +.openrouter.ai
 
