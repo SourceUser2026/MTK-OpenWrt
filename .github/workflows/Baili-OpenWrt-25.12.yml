@@ -222,7 +222,16 @@ jobs:
         # fix rust build fail
         #-sed -i 's/download-ci-llvm=true/download-ci-llvm=false/g' "feeds/packages/lang/rust/Makefile"
         sed -i 's/download-ci-llvm=false/download-ci-llvm=true/g' "feeds/packages/lang/rust/Makefile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        if make -j$(nproc) || make -j1 || make -j1 V=s; then
+          :
+        else
+          echo "::error::固件编译失败，跳过后续上传步骤"
+          exit 1
+        fi
+        if ! find bin/targets -type f | grep -Eq '\.(bin|img|itb|ubi|gz|squashfs|ext4)$'; then
+          echo "::error::编译完成但未找到固件文件，跳过后续上传步骤"
+          exit 1
+        fi
         sed -n 's/.*lan) ipad=${ipaddr:-"\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)"} ;;.*/\1/p' package/base-files/files/bin/config_generate | head -n 1 > IP_ADDR
         [ -s IP_ADDR ] && echo "IP_ADDR=$(cat IP_ADDR)" >> $GITHUB_ENV
         echo "FILE_DATE=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_ENV
@@ -234,7 +243,7 @@ jobs:
 
     - name: 整理文件并重命名
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: | 
         cd $OPENWRT_PATH
         matched_lines=$(grep '^CONFIG_TARGET.*DEVICE_.*=y' .config | grep -v 'PER_DEVICE' | grep -v 'DEVICE_PACKAGES')
@@ -242,6 +251,10 @@ jobs:
         cd bin/targets/*/*
         rm -rf packages
         find ./ -iregex ".*\(bl31-uboot.fip\|gpt.bin\|preloader.bin\|bl2.bin\)$" -exec rm -rf {} +
+        if ! find . -maxdepth 1 -type f | grep -Eq '\.(bin|img|itb|ubi|gz|squashfs|ext4)$'; then
+                echo "::error::整理后未找到可上传的固件文件"
+                exit 1
+        fi
         for val in "${devices[@]}"; do
                 echo "Processing device: $val"
                 for file in *"${val}"*; do
@@ -265,7 +278,7 @@ jobs:
 
     - name: 生成固件Release标签
       id: tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
         touch release.txt
         echo "- 使用源码：${{ env.REPO_URL }}" >> release.txt
