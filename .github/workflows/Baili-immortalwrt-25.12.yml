@@ -180,10 +180,6 @@ jobs:
       run: |
         cd $OPENWRT_PATH
         echo -e "$(nproc) thread compile"
-        # 强制禁用 rust 的 download-ci-llvm（兼容等号前后带空格的写法）
-        sed -i -E 's/download-ci-llvm[[:space:]]*=[[:space:]]*(true|if-unchanged)/download-ci-llvm = false/g' feeds/packages/lang/rust/Makefile
-        echo "=== 验证 rust/Makefile 修改结果 ==="
-        grep "download-ci-llvm" feeds/packages/lang/rust/Makefile || true
         if make -j$(nproc) || make -j1 || make -j1 V=s; then
           :
         else
