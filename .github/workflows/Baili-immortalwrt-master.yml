@@ -169,7 +169,7 @@ jobs:
         make defconfig
         
         echo "=== 排查触发 Rust 编译的包 ==="
-        grep -B 12 -E "rust/host|DEPENDS:.*rust" tmp/.packageinfo | grep -E "Package:|Build-Depends:|DEPENDS:" || true
+        grep -B 3 -E "rust/host" tmp/.packageinfo | grep -E "Source-Makefile:|Build-Depends:"
         
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
