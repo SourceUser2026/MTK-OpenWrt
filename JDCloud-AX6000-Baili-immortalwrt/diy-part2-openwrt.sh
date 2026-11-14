@@ -62,6 +62,16 @@ else
 	echo ">>> 未检测到 CONFIG_PACKAGE_luci-app-openclash=y，跳过 OpenClash 内核与数据下载。"
 fi
 
+# 禁用 Ruby 的 YJIT，移除 rust/host 依赖以大幅缩短编译时间并规避 LLVM 404 报错
+if [ -f feeds/packages/lang/ruby/Makefile ]; then
+	echo ">>> 正在修改 ruby/Makefile，禁用 YJIT 并移除 rust/host 依赖..."
+	sed -i 's/rust\/host//g' feeds/packages/lang/ruby/Makefile
+	sed -i 's/--enable-yjit/--disable-yjit/g' feeds/packages/lang/ruby/Makefile
+	if ! grep -q -- '--disable-yjit' feeds/packages/lang/ruby/Makefile; then
+		sed -i '/CONFIGURE_ARGS +=/a \\t--disable-yjit \\' feeds/packages/lang/ruby/Makefile
+	fi
+fi
+
 
 
 
